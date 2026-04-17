@@ -9,17 +9,17 @@
 ```
 $ god-search "rust async runtime" --limit 3
 
-  ✓ ddg  ✓ brave  ✓ reddit  ✓ github  · · ·
-  ⚡ 4/7 engines · 847ms
+  ✓ ddg  ✓ brave  ✓ bing  ✓ google  ✓ reddit  ✓ github  ✓ wiki
+  ⚡ 3/7 fast · 7/7 cached · <10ms
 
-  #1  score=21  tokio.rs
+  #1  score=28  doc.rust-lang.org
+      Async in Rust — official async/await guide
+
+  #2  score=21  tokio.rs
       Tokio — An asynchronous runtime for Rust
 
-  #2  score=18  doc.rust-lang.org
-      Async book — official Rust async/await guide
-
-  #3  score=15  reddit.com/r/rust
-      "What async runtime are you using in 2026?"
+  #3  score=18  rust-lang.github.io
+      Asynchronous Programming in Rust — async book
 ```
 
 ---
@@ -28,7 +28,7 @@ $ god-search "rust async runtime" --limit 3
 
 - **No API keys** — CloakBrowser stealth scraping + public JSON APIs
 - **7 engines in parallel** — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia
-- **Fast** — fast-path returns when 4/7 engines complete (~1s warm, <10ms cached)
+- **Fast** — API engines return in ~2s; browser engines finish in background, cache hit <10ms
 - **Smart ranking** — cross-engine boost, domain diversity, official-source scoring
 - **Agent-native** — CLI-first, ~80 tokens/call, zero MCP schema tax
 - **Persistent browser** — daemon keeps CloakBrowser warm across all calls
@@ -200,7 +200,7 @@ results → cross-engine boost (+4/+8/+12 for shared URLs)
         → score sort → return top N
 ```
 
-- **LRU-TTL cache** — 256 entries, 10min TTL, repeat queries are instant
+- **LRU-TTL cache** — 256 entries, 10min TTL; 1st request gets API engines (~2s), 2nd gets all 7 engines (<10ms)
 - **Browser isolation** — `withBrowserPage()` serializes CloakBrowser, prevents crashes
 - **Auto-reconnect** — browser restarts automatically on disconnect
 

@@ -74,9 +74,9 @@ Fields: `title` (≤120 chars), `url`, `snippet` (≤300 chars, HTML-decoded, en
 
 ## Performance
 
-- Daemon warm search: ~1s (fast-path fires at 4/7 engines)
-- Cache hit: <10ms (LRU-TTL, 256 entries, 10min)
-- Cold start: 4–6s (browser launch)
+- First request: ~2s (API engines — reddit/github/wikipedia complete fast)
+- Second request: <10ms (cache hit — all 7 engines included, cross-engine boosted)
+- Cold start: +3–5s (browser launch on top of first request)
 
 ## Scoring
 
