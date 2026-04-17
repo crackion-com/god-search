@@ -1,6 +1,6 @@
 {
   "name": "god-search",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Free unlimited universal web search — CloakBrowser + 7 engines + MCP",
   "type": "module",
   "bin": {
