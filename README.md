@@ -187,13 +187,13 @@ If daemon is down: `systemctl --user start god-search`
 
 ```
 query → 7 engines fire in parallel
-         ├── DDG ──────┐
-         ├── Brave ────┤
-         ├── Bing ─────┤  fast-path: resolves at 4/7 complete
-         ├── Google ───┤  or 2000ms — whichever comes first
-         ├── Reddit ───┘
-         ├── GitHub ────── background: finish + update cache
-         └── Wikipedia ─── background: finish + update cache
+         ├── Reddit ────┐
+         ├── Wikipedia ─┤  fast (~1s): JSON API engines
+         ├── GitHub ────┘  fast-path resolves at 2000ms timeout
+         ├── DDG ───────── background: CloakBrowser, finish + update cache
+         ├── Brave ──────── background: CloakBrowser, finish + update cache
+         ├── Bing ───────── background: CloakBrowser, finish + update cache
+         └── Google ──────── background: CloakBrowser, finish + update cache
 
 results → cross-engine boost (+4/+8/+12 for shared URLs)
         → domain diversity (max 2 per domain)
