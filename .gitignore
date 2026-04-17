@@ -2,3 +2,7 @@ node_modules/
 graphify-out/
 .env
 *.log
+.claude/
+CLAUDE.md
+.graphifyignore
+test/
