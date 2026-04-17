@@ -1,0 +1,19 @@
+{
+  "name": "god-search",
+  "version": "1.0.0",
+  "description": "Free unlimited universal web search — CloakBrowser + 7 engines + MCP",
+  "type": "module",
+  "bin": {
+    "god-search": "./index.js"
+  },
+  "scripts": {
+    "test": "node test/verify-engines.js",
+    "prebuild": "node -e \"import('cloakbrowser').then(m => m.ensureBinary ? m.ensureBinary() : null).catch(()=>{})\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "cloakbrowser": "0.3.25",
+    "playwright-core": "^1.59.1",
+    "zod": "^3.22.0"
+  }
+}

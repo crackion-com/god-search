@@ -1,0 +1,4 @@
+node_modules/
+graphify-out/
+.git/
+*.log

@@ -1,0 +1,15 @@
+[Unit]
+Description=god-search HTTP daemon (localhost:3847)
+After=network.target
+
+[Service]
+Type=simple
+User=hermes
+WorkingDirectory=/home/hermes/.hermes/skills/research/god-search
+ExecStart=/usr/bin/node index.js serve
+Restart=always
+RestartSec=5
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
