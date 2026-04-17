@@ -1,7 +1,7 @@
 ---
 name: god-search
 description: Free unlimited universal web search — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia via CloakBrowser stealth scraping and public JSON APIs. No API keys, no rate limits, works forever.
-version: 1.0.8
+version: 1.0.9
 author: crackion
 license: MIT
 metadata:

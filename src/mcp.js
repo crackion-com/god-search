@@ -5,15 +5,18 @@
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { createRequire } from 'module';
 import { z } from 'zod';
 import { withCache } from './cache.js';
 import { runSearch } from './merger.js';
 import { extractPage } from './extractor.js';
 import { closeBrowser } from './browser.js';
 
+const { version } = createRequire(import.meta.url)('../package.json');
+
 const server = new McpServer({
   name: 'god-search',
-  version: '1.0.0',
+  version,
 });
 
 // ─── god_search ─────────────────────────────────────────────────────────────
