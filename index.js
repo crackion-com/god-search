@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { createRequire } from 'module';
+const { version } = createRequire(import.meta.url)('./package.json');
 /**
  * index.js — god-search entry point
  *
@@ -97,7 +99,7 @@ if (mode === 'mcp') {
   }
 
 } else {
-  console.error(`god-search v1.0.5 — Free unlimited universal web search
+  console.error(`god-search v${version} — Free unlimited universal web search
 
 Usage:
   god-search mcp                          MCP stdio server
