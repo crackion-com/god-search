@@ -189,7 +189,7 @@ If daemon is down: `systemctl --user start god-search`
 query → 7 engines fire in parallel
          ├── Reddit ────┐
          ├── Wikipedia ─┤  fast (~1s): JSON API engines
-         ├── GitHub ────┘  fast-path resolves at 2000ms timeout
+         ├── GitHub ────┘  fast-path: 4/7 complete OR 2000ms — whichever first
          ├── DDG ───────── background: CloakBrowser, finish + update cache
          ├── Brave ──────── background: CloakBrowser, finish + update cache
          ├── Bing ───────── background: CloakBrowser, finish + update cache
@@ -201,7 +201,7 @@ results → cross-engine boost (+4/+8/+12 for shared URLs)
 ```
 
 - **LRU-TTL cache** — 256 entries, 10min TTL; 1st request gets API engines (~2s), 2nd gets all 7 engines (<10ms)
-- **Browser isolation** — `withBrowserPage()` serializes CloakBrowser, prevents crashes
+- **Browser isolation** — `withBrowserPage()` throttles to 2 concurrent CloakBrowser pages, prevents crashes
 - **Auto-reconnect** — browser restarts automatically on disconnect
 
 ---
