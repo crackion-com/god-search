@@ -10,6 +10,7 @@
     "test": "node test/verify-engines.js",
     "prebuild": "node -e \"import('cloakbrowser').then(m => m.ensureBinary ? m.ensureBinary() : null).catch(()=>{})\""
   },
+  "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
     "cloakbrowser": "0.3.25",
