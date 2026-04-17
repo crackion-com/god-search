@@ -1,0 +1,5 @@
+.claude/
+.graphifyignore
+CLAUDE.md
+graphify-out/
+*.log
