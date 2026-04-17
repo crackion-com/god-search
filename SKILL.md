@@ -1,8 +1,8 @@
 ---
 name: god-search
 description: Free unlimited universal web search — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia via CloakBrowser stealth scraping and public JSON APIs. No API keys, no rate limits, works forever.
-version: 1.0.0
-author: ployknife
+version: 1.0.5
+author: crackion
 license: MIT
 metadata:
   hermes:
@@ -32,7 +32,7 @@ curl -s http://127.0.0.1:3847/search -H 'Content-Type: application/json' \
 
 **Extract full page text (CLI — works without daemon):**
 ```bash
-node /home/ployknife/Dev/projects/god-search/index.js extract https://...
+god-search extract https://...
 ```
 
 **Extract via daemon (preferred — warm browser):**
@@ -43,8 +43,8 @@ curl -s http://127.0.0.1:3847/extract -H 'Content-Type: application/json' \
 
 **CLI (cold, no daemon needed):**
 ```bash
-node /home/ployknife/Dev/projects/god-search/index.js "query" --limit 5
-node /home/ployknife/Dev/projects/god-search/index.js "query" --limit 5 --fields=title,url,snippet
+god-search "query" --limit 5
+god-search "query" --limit 5 --fields=title,url,snippet
 ```
 
 **If daemon is down:**
@@ -58,7 +58,7 @@ systemctl --user start god-search
 {"query":"...","results":[{"title":"...","url":"...","snippet":"...","score":16,"engines":["ddg"],"rank":1}],"total":5}
 ```
 
-Fields: `title` (≤120 chars), `url`, `snippet` (≤300 chars, HTML-decoded), `score`, `engines`, `rank`
+Fields: `title` (≤120 chars), `url`, `snippet` (≤300 chars, HTML-decoded, enforced), `score`, `engines`, `rank`
 
 ## Engines
 

@@ -107,7 +107,7 @@ function mergeEngineResults(engineMap, query, limit) {
     final.push({
       title: decodeEntities(r.title).slice(0, 120),
       url: r.url,
-      snippet: decodeEntities(r.snippet),
+      snippet: decodeEntities(r.snippet).slice(0, 300),
       score: r.score,
       engines: r.engines,
       rank: final.length + 1,

@@ -94,7 +94,7 @@ if (mode === 'mcp') {
   }
 
 } else {
-  console.error(`god-search v1.0.0 — Free unlimited universal web search
+  console.error(`god-search v1.0.5 — Free unlimited universal web search
 
 Usage:
   god-search mcp                          MCP stdio server
