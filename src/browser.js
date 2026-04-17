@@ -49,7 +49,7 @@ export async function closeBrowser() {
   }
 }
 
-// Run fn(page) with exclusive browser access — one engine at a time
+// Run fn(page) with a throttled browser page — max MAX_NAV concurrent
 export async function withBrowserPage(fn) {
   await _acquireNav();
   const browser = await ensureBrowser();
