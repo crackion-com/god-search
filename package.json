@@ -8,7 +8,7 @@
   },
   "scripts": {
     "test": "node test/verify-engines.js",
-    "prebuild": "node -e \"import('cloakbrowser').then(m => m.ensureBinary ? m.ensureBinary() : null).catch(()=>{})}\"",
+    "prebuild": "node -e \"import('cloakbrowser').then(m => m.ensureBinary ? m.ensureBinary() : null).catch(()=>{})\"",
     "postversion": "node -e \"const fs=require('fs');const v=require('./package.json').version;const s=fs.readFileSync('SKILL.md','utf8').replace(/^version: .+$/m,'version: '+v);fs.writeFileSync('SKILL.md',s);console.log('SKILL.md updated to',v)\""
   },
   "license": "MIT",
