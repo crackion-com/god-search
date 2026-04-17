@@ -6,24 +6,51 @@
 [![npm downloads](https://img.shields.io/npm/dm/god-search)](https://www.npmjs.com/package/god-search)
 [![license](https://img.shields.io/npm/l/god-search)](./LICENSE)
 
-7 engines in parallel — Google, Bing, DuckDuckGo, Brave, Reddit, GitHub, Wikipedia.  
-Returns ranked, deduplicated, clean JSON. Fast-path fires when 4/7 engines complete (~1s warm).
+```
+$ god-search "rust async runtime" --limit 3
+
+  ✓ ddg  ✓ brave  ✓ reddit  ✓ github  · · ·
+  ⚡ 4/7 engines · 847ms
+
+  #1  score=21  tokio.rs
+      Tokio — An asynchronous runtime for Rust
+
+  #2  score=18  doc.rust-lang.org
+      Async book — official Rust async/await guide
+
+  #3  score=15  reddit.com/r/rust
+      "What async runtime are you using in 2026?"
+```
+
+---
+
+## Why god-search
+
+- **No API keys** — CloakBrowser stealth scraping + public JSON APIs
+- **7 engines in parallel** — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia
+- **Fast** — fast-path returns when 4/7 engines complete (~1s warm, <10ms cached)
+- **Smart ranking** — cross-engine boost, domain diversity, official-source scoring
+- **Agent-native** — CLI-first, ~80 tokens/call, zero MCP schema tax
+- **Persistent browser** — daemon keeps CloakBrowser warm across all calls
+- **Works forever** — no quotas, no rate limits, no billing
+
+---
+
+## Requirements
+
+- Node.js 18+
+- Linux / macOS (CloakBrowser headless Chromium)
 
 ---
 
 ## Install
 
 ```bash
-# npm
-npm install -g god-search
+npm install -g god-search   # npm
+pnpm add -g god-search      # pnpm
+bun install --global god-search  # bun
 
-# pnpm
-pnpm add -g god-search
-
-# bun
-bun install --global god-search
-
-# no install — run directly
+# no install needed
 npx god-search "your query"
 bunx god-search "your query"
 ```
@@ -37,33 +64,39 @@ god-search "rust async runtime"
 ```
 
 ```json
-{"query":"rust async runtime","results":[{"title":"Tokio","url":"https://tokio.rs","snippet":"Tokio is an asynchronous runtime for Rust...","score":21,"engines":["ddg","brave","google"],"rank":1}],"total":10}
+{
+  "query": "rust async runtime",
+  "results": [
+    {
+      "title": "Tokio",
+      "url": "https://tokio.rs",
+      "snippet": "Tokio is an asynchronous runtime for Rust...",
+      "score": 21,
+      "engines": ["ddg", "brave", "google"],
+      "rank": 1
+    }
+  ],
+  "total": 10
+}
 ```
 
----
-
-## Usage
-
-### CLI
-
 ```bash
-# Search
-god-search "query"
-god-search "query" --limit 5
-god-search "query" --fields=title,url,score
-god-search "query" --verbose
+# Only the fields you need
+god-search "rust async runtime" --limit 5 --fields=title,url,score
 
 # Extract full page text
 god-search extract https://tokio.rs
 ```
 
-### HTTP Daemon (best for AI agents)
+---
 
-Start once, browser stays warm across all calls:
+## HTTP Daemon (recommended for AI agents)
+
+Start once — browser stays warm, all searches reuse it:
 
 ```bash
 god-search serve
-# listening on http://127.0.0.1:3847
+# ✓ listening on http://127.0.0.1:3847
 ```
 
 ```bash
@@ -72,16 +105,16 @@ curl -s http://127.0.0.1:3847/search \
   -H 'Content-Type: application/json' \
   -d '{"query":"rust async runtime","limit":5}'
 
-# Extract
+# Extract full page text
 curl -s http://127.0.0.1:3847/extract \
   -H 'Content-Type: application/json' \
   -d '{"url":"https://tokio.rs"}'
 
-# Health
+# Health check
 curl -s http://127.0.0.1:3847/health
 ```
 
-### Auto-start on login (systemd)
+### Auto-start on login
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -97,11 +130,11 @@ systemctl --user enable --now god-search
 
 | Command | Description |
 |---|---|
-| `god-search "query"` | Search, returns compact JSON |
-| `god-search "query" --limit N` | Limit result count (default 10) |
-| `god-search "query" --fields=title,url,snippet,score` | Return only specified fields |
+| `god-search "query"` | Search — compact JSON to stdout |
+| `god-search "query" --limit N` | Limit results (default: 10) |
+| `god-search "query" --fields=title,url,score` | Return only specified fields |
 | `god-search "query" --verbose` | Include engine stats + elapsed time |
-| `god-search extract <url>` | Extract full clean text from URL |
+| `god-search extract <url>` | Extract clean text from any URL |
 | `god-search serve` | Start HTTP daemon on port 3847 |
 | `god-search mcp` | Start MCP stdio server |
 
@@ -109,76 +142,80 @@ systemctl --user enable --now god-search
 
 ## AI Agents (Claude Code, Cursor, OpenCode)
 
-god-search is CLI-first — **zero MCP schema tax**, ~80–150 tokens per call.
+god-search is built for agents. The HTTP daemon gives you a warm browser with zero per-call overhead.
 
-The daemon keeps the browser warm. Use `curl` from any agent with a bash tool:
+**~80 tokens/call vs 1,500+ for equivalent MCP browser tools.**
 
 ```bash
-# Add to your project as an agent skill
+# Search
+curl -s http://127.0.0.1:3847/search \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"anthropic claude api","limit":5}'
+
+# Extract a page
+curl -s http://127.0.0.1:3847/extract \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"https://docs.anthropic.com"}'
+```
+
+```bash
+# Add god-search as an agent skill (one-time)
 cp node_modules/god-search/SKILL.md .claude/rules/god-search.md
+# or
+cp node_modules/god-search/SKILL.md .cursor/skills/god-search.md
 ```
 
-Benchmark vs MCP browser tools: **~80 tokens/call vs 1,500+**
-
----
-
-## Output Format
-
-```json
-{
-  "query": "...",
-  "results": [
-    {
-      "title": "...",
-      "url": "https://...",
-      "snippet": "...",
-      "score": 21,
-      "engines": ["ddg", "brave"],
-      "rank": 1
-    }
-  ],
-  "total": 10
-}
-```
-
-Fields: `--fields=title,url,snippet,score,engines,rank`
+If daemon is down: `systemctl --user start god-search`
 
 ---
 
 ## Engines
 
-| Engine | Type | Notes |
+| Engine | Type | Best for |
 |---|---|---|
-| DuckDuckGo | CloakBrowser | Fast, no consent banners |
-| Brave | CloakBrowser | Strong for technical queries |
-| Bing | CloakBrowser | High coverage |
-| Google | CloakBrowser | Best quality, CAPTCHA-prone |
+| DuckDuckGo | CloakBrowser | Fast general results |
+| Brave | CloakBrowser | Technical queries |
+| Bing | CloakBrowser | Broad coverage |
+| Google | CloakBrowser | Highest quality (CAPTCHA-prone) |
 | Reddit | JSON API | Community discussions |
-| GitHub | JSON API | Code repositories |
-| Wikipedia | JSON API | Factual definitions |
+| GitHub | JSON API | Code & repositories |
+| Wikipedia | JSON API | Definitions & facts |
 
 ---
 
 ## How It Works
 
-- All 7 engines fire in parallel
-- **Fast-path**: returns when 4/7 engines complete or 2000ms elapses (~1s warm)
-- Remaining engines finish in background, update cache silently
-- **Cross-engine boost**: same URL from 2/3/4+ engines → +4/+8/+12 score
-- **Domain diversity**: max 2 results per domain
-- **LRU-TTL cache**: 256 entries, 10min TTL — repeat queries are instant
-- **Browser isolation**: `withBrowserPage()` serializes CloakBrowser calls, prevents crashes
+```
+query → 7 engines fire in parallel
+         ├── DDG ──────┐
+         ├── Brave ────┤
+         ├── Bing ─────┤  fast-path: resolves at 4/7 complete
+         ├── Google ───┤  or 2000ms — whichever comes first
+         ├── Reddit ───┘
+         ├── GitHub ────── background: finish + update cache
+         └── Wikipedia ─── background: finish + update cache
+
+results → cross-engine boost (+4/+8/+12 for shared URLs)
+        → domain diversity (max 2 per domain)
+        → score sort → return top N
+```
+
+- **LRU-TTL cache** — 256 entries, 10min TTL, repeat queries are instant
+- **Browser isolation** — `withBrowserPage()` serializes CloakBrowser, prevents crashes
+- **Auto-reconnect** — browser restarts automatically on disconnect
 
 ---
 
 ## MCP (opt-in)
 
+For environments that require typed tool discovery:
+
 ```json
 {
   "mcpServers": {
     "god-search": {
-      "command": "node",
-      "args": ["/path/to/god-search/index.js", "mcp"]
+      "command": "god-search",
+      "args": ["mcp"]
     }
   }
 }
