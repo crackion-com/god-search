@@ -2,4 +2,5 @@
 .graphifyignore
 CLAUDE.md
 graphify-out/
+test/
 *.log
