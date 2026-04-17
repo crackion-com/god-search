@@ -50,7 +50,10 @@ if (mode === 'mcp') {
 } else if (mode && !mode.startsWith('-')) {
   // CLI mode: argv[2] is the query
   const args = [mode, ...rest];
-  const query = args.filter(a => !a.startsWith('--')).join(' ');
+  const limitIdx = args.indexOf('--limit');
+  const skipSet = new Set();
+  if (limitIdx !== -1 && limitIdx + 1 < args.length) skipSet.add(limitIdx + 1);
+  const query = args.filter((a, i) => !a.startsWith('-') && !skipSet.has(i)).join(' ');
   const limitArg = args.find(a => a.startsWith('--limit=')) || args[args.indexOf('--limit') + 1];
   const limit = limitArg ? parseInt(String(limitArg).replace('--limit=', ''), 10) : 10;
   const verbose = args.includes('--verbose') || args.includes('-v');

@@ -71,7 +71,9 @@ export async function startHttp() {
       json(res, 404, { error: 'Not found', routes: ['GET /health', 'POST /search', 'POST /extract'] });
     } catch (err) {
       console.error('[http] error:', err);
-      json(res, 500, { error: err.message });
+      const isExtract = req.method === 'POST' && new URL(req.url, 'http://x').pathname === '/extract';
+      const msg = isExtract ? `Extract failed: ${err.message.split('\n')[0]}` : err.message;
+      json(res, 500, { error: msg });
     }
   });
 

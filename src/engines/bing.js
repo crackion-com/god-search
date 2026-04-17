@@ -9,6 +9,9 @@ export async function searchBing(query, limit = 10) {
     const url = new URL(BING_URL);
     url.searchParams.set('q', query);
     url.searchParams.set('count', '10');
+    url.searchParams.set('setLang', 'en');
+    url.searchParams.set('cc', 'US');
+    url.searchParams.set('mkt', 'en-US');
     await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
 
     await page.waitForSelector('li.b_algo h2 a', { timeout: 5000 }).catch(() => {});

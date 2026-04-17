@@ -4,7 +4,7 @@ let _browser = null;
 let _launchPromise = null;
 
 // Limit concurrent browser page navigations to prevent CloakBrowser crashes
-const MAX_NAV = 1;
+const MAX_NAV = 2;
 let _navCount = 0;
 const _navQueue = [];
 

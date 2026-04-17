@@ -161,12 +161,13 @@ export async function runSearch(query, opts = {}) {
 
   const fastPathResults = mergeEngineResults(engineMap, query, limit);
   const fastPathElapsed = Date.now() - startTime;
+  const fastPathEngineCount = engineMap.size;
   console.error(`[merger] fast-path: ${completedCount}/${engines.length} engines, ${fastPathResults.length} results, ${fastPathElapsed}ms`);
 
   // Let remaining engines finish in background and update cache
   if (completedCount < engines.length && opts._cacheOpts) {
     Promise.allSettled(promises).then(() => {
-      if (engineMap.size > completedCount) {
+      if (engineMap.size > fastPathEngineCount) {
         const betterResults = mergeEngineResults(engineMap, query, limit);
         updateCache(query, opts._cacheOpts, {
           results: betterResults,
