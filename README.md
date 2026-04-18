@@ -1,7 +1,7 @@
 # god-search
 
 <p align="center">
-  <img src="assets/promo.png" alt="god-search — Unlimited. Universal. Forever." width="700">
+  <img src="https://raw.githubusercontent.com/crackion-com/god-search/main/assets/promo.png" alt="god-search — Unlimited. Universal. Forever." width="700">
 </p>
 
 > Free unlimited universal web search. No API keys. No rate limits. Works forever.
