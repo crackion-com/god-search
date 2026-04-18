@@ -1,5 +1,9 @@
 # god-search
 
+<p align="center">
+  <img src="assets/promo.png" alt="god-search — Unlimited. Universal. Forever." width="700">
+</p>
+
 > Free unlimited universal web search. No API keys. No rate limits. Works forever.
 
 [![npm version](https://img.shields.io/npm/v/god-search)](https://www.npmjs.com/package/god-search)
