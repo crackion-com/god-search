@@ -1,7 +1,7 @@
 ---
 name: god-search
 description: Universal web search for AI agents — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia via CloakBrowser and public JSON APIs. MCP, HTTP, and CLI. Brave is challenge-prone and opt-in for merged search.
-version: 1.0.17
+version: 1.1.0
 author: crackion
 license: MIT
 metadata:
