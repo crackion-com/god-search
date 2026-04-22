@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-import { createRequire } from 'module';
-const { version } = createRequire(import.meta.url)('./package.json');
 /**
  * index.js — god-search entry point
  *
@@ -17,10 +15,14 @@ const { version } = createRequire(import.meta.url)('./package.json');
  *   god-search "python requests" --verbose  # CLI with stats
  */
 
+import { createRequire } from 'module';
 import { withCache } from './src/cache.js';
+import { APP, HTTP_CONFIG } from './src/config.js';
 import { runSearch } from './src/merger.js';
 import { closeBrowser } from './src/browser.js';
 
+const require = createRequire(import.meta.url);
+const { version } = require('./package.json');
 const [, , mode, ...rest] = process.argv;
 
 if (mode === 'mcp') {
@@ -81,6 +83,8 @@ if (mode === 'mcp') {
       query,
       results,
       total: results.length,
+      partial: !!result.partial,
+      meta: { app: APP },
     };
 
     if (verbose) {
@@ -99,16 +103,16 @@ if (mode === 'mcp') {
   }
 
 } else {
-  console.error(`god-search v${version} — Free unlimited universal web search
+  console.error(`${APP.name} v${version} — Free unlimited universal web search
 
 Usage:
-  god-search mcp                          MCP stdio server
-  god-search serve                        HTTP daemon on localhost:3847
-  god-search extract <url>                Extract full page text
-  god-search "query"                      CLI search (compact JSON)
-  god-search "query" --limit 5           Limit results
-  god-search "query" --fields=title,url  Select specific fields
+  ${APP.name} mcp                          MCP stdio server
+  ${APP.name} serve                        HTTP daemon on http://${HTTP_CONFIG.host}:${HTTP_CONFIG.port}
+  ${APP.name} extract <url>                Extract full page text
+  ${APP.name} "query"                      CLI search (compact JSON)
+  ${APP.name} "query" --limit 5           Limit results
+  ${APP.name} "query" --fields=title,url  Select specific fields
 
-Engines: DDG, Bing, Brave, Google, Reddit, GitHub, Wikipedia`);
+Engines: DDG, Bing, Google, Reddit, GitHub, Wikipedia (+ Brave opt-in: GOD_SEARCH_ENABLE_BRAVE=true)`);
   process.exit(0);
 }

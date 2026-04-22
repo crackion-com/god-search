@@ -3,10 +3,10 @@
  */
 
 import { scoreResult, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const REDDIT_SEARCH = 'https://www.reddit.com/search.json';
-const USER_AGENT = 'god-search/1.0 (research tool; github.com/god-search)';
-const TIMEOUT_MS = 8000;
+const USER_AGENT = 'god-search/1.0 (research tool; github.com/crackion-com/god-search)';
 
 export async function searchReddit(query, limit = 10) {
   const url = new URL(REDDIT_SEARCH);
@@ -16,7 +16,7 @@ export async function searchReddit(query, limit = 10) {
   url.searchParams.set('type', 'link');
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), SEARCH_CONFIG.apiTimeoutMs);
 
   let data;
   try {
