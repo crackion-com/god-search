@@ -1,8 +1,8 @@
 import { withBrowserPage } from '../browser.js';
 import { scoreResult, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const BING_URL = 'https://www.bing.com/search';
-const TIMEOUT_MS = 10000;
 
 export async function searchBing(query, limit = 10) {
   return withBrowserPage(async (page) => {
@@ -12,7 +12,7 @@ export async function searchBing(query, limit = 10) {
     url.searchParams.set('setLang', 'en');
     url.searchParams.set('cc', 'US');
     url.searchParams.set('mkt', 'en-US');
-    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: SEARCH_CONFIG.searchTimeoutMs });
 
     await page.waitForSelector('li.b_algo h2 a', { timeout: 5000 }).catch(() => {});
 

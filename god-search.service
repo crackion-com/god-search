@@ -1,13 +1,15 @@
 [Unit]
-Description=god-search HTTP daemon (localhost:3847)
+Description=god-search HTTP daemon
 After=network.target
 
 [Service]
 Type=simple
+WorkingDirectory=%h
 ExecStart=/usr/bin/env god-search serve
 Restart=always
 RestartSec=5
 Environment=NODE_ENV=production
+EnvironmentFile=-%h/.config/god-search.env
 
 [Install]
 WantedBy=default.target

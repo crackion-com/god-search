@@ -4,10 +4,10 @@
  */
 
 import { scoreResult, applyForkPenalty, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const GITHUB_SEARCH = 'https://api.github.com/search/repositories';
 const USER_AGENT = 'god-search/1.0';
-const TIMEOUT_MS = 8000;
 const RATE_LIMIT = 10; // requests per window
 const WINDOW_MS = 60_000; // 1 minute
 
@@ -35,7 +35,7 @@ export async function searchGithub(query, limit = 10) {
   url.searchParams.set('sort', 'best_match');
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), SEARCH_CONFIG.apiTimeoutMs);
 
   let data;
   try {

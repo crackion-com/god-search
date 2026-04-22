@@ -4,14 +4,14 @@
  */
 
 import { scoreResult, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const WIKI_API = 'https://en.wikipedia.org/w/api.php';
 const USER_AGENT = 'god-search/1.0 (research tool)';
-const TIMEOUT_MS = 8000;
 
 async function fetchJson(url) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), SEARCH_CONFIG.apiTimeoutMs);
   try {
     const resp = await fetch(url, {
       headers: { 'User-Agent': USER_AGENT },

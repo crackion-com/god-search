@@ -7,15 +7,26 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createRequire } from 'module';
 import { z } from 'zod';
+import { AGENT_CONFIG, APP } from './config.js';
 import { withCache } from './cache.js';
+import { cacheStats } from './cache.js';
 import { runSearch } from './merger.js';
 import { extractPage } from './extractor.js';
-import { closeBrowser } from './browser.js';
+import { browserStatus, closeBrowser } from './browser.js';
+import {
+  noteError,
+  noteExtractComplete,
+  noteExtractStart,
+  noteHealthRequest,
+  noteSearchComplete,
+  noteSearchStart,
+  runtimeSnapshot,
+} from './runtime.js';
 
 const { version } = createRequire(import.meta.url)('../package.json');
 
 const server = new McpServer({
-  name: 'god-search',
+  name: APP.name,
   version,
 });
 
@@ -35,15 +46,22 @@ server.tool(
   },
   async ({ query, limit, engines, verbose }) => {
     try {
+      const startedAt = Date.now();
+      noteSearchStart(query);
       const cacheOpts = { limit, engines };
       const result = await withCache(query, cacheOpts, () =>
         runSearch(query, { limit, engines, _cacheOpts: cacheOpts })
       );
+      noteSearchComplete({
+        elapsedMs: Date.now() - startedAt,
+        engineErrors: result.engineStats?.errors || {},
+      });
 
       const output = {
         query,
         results: result.results,
         total: result.results.length,
+        partial: !!result.partial,
       };
 
       if (verbose || result.fromCache) {
@@ -53,11 +71,16 @@ server.tool(
           output.engines = result.engineStats;
         }
       }
+      output.meta = {
+        app: APP,
+        cache: cacheStats(),
+      };
 
       return {
         content: [{ type: 'text', text: JSON.stringify(output, null, 2) }],
       };
     } catch (err) {
+      noteError('mcp.god_search', err);
       console.error('[god_search] error:', err);
       return {
         content: [{
@@ -79,7 +102,11 @@ server.tool(
   },
   async ({ url }) => {
     try {
+      const startedAt = Date.now();
+      noteExtractStart(url);
       const result = await extractPage(url);
+      noteExtractComplete({ elapsedMs: Date.now() - startedAt });
+      result.meta = { app: APP };
       return {
         content: [{
           type: 'text',
@@ -87,6 +114,7 @@ server.tool(
         }],
       };
     } catch (err) {
+      noteError('mcp.god_extract', err);
       console.error('[god_extract] error:', err);
       return {
         content: [{
@@ -98,6 +126,40 @@ server.tool(
     }
   }
 );
+
+if (AGENT_CONFIG.exposeGodHealthTool) {
+  server.tool(
+    'god_health',
+    {},
+    async () => {
+      try {
+        noteHealthRequest();
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({
+              status: 'ok',
+              ready: true,
+              app: APP,
+              browser: browserStatus(),
+              cache: cacheStats(),
+              runtime: runtimeSnapshot(),
+            }, null, 2),
+          }],
+        };
+      } catch (err) {
+        noteError('mcp.god_health', err);
+        return {
+          content: [{
+            type: 'text',
+            text: JSON.stringify({ status: 'error', error: err.message }, null, 2),
+          }],
+          isError: true,
+        };
+      }
+    }
+  );
+}
 
 // ─── startup ─────────────────────────────────────────────────────────────────
 

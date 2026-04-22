@@ -1,15 +1,18 @@
 import { launch } from 'cloakbrowser';
+import { BROWSER_CONFIG } from './config.js';
 
 let _browser = null;
 let _launchPromise = null;
+let _launchCount = 0;
+let _disconnectCount = 0;
+let _lastLaunchAt = null;
 
 // Limit concurrent browser page navigations to prevent CloakBrowser crashes
-const MAX_NAV = 2;
 let _navCount = 0;
 const _navQueue = [];
 
 async function _acquireNav() {
-  if (_navCount < MAX_NAV) { _navCount++; return; }
+  if (_navCount < BROWSER_CONFIG.maxNav) { _navCount++; return; }
   await new Promise(r => _navQueue.push(r));
   _navCount++;
 }
@@ -26,10 +29,13 @@ async function _launchBrowser() {
   });
   b.on('disconnected', () => {
     console.error('[browser] disconnected — will relaunch on next use');
+    _disconnectCount++;
     _browser = null;
   });
   _browser = b;
   _launchPromise = null;
+  _launchCount++;
+  _lastLaunchAt = new Date().toISOString();
   console.error('[browser] launched');
   return b;
 }
@@ -49,7 +55,7 @@ export async function closeBrowser() {
   }
 }
 
-// Run fn(page) with a throttled browser page — max MAX_NAV concurrent
+// Run fn(page) with a throttled browser page.
 export async function withBrowserPage(fn) {
   await _acquireNav();
   const browser = await ensureBrowser();
@@ -63,5 +69,13 @@ export async function withBrowserPage(fn) {
 }
 
 export function browserStatus() {
-  return { connected: !!_browser?.isConnected() };
+  return {
+    connected: !!_browser?.isConnected(),
+    launch_count: _launchCount,
+    disconnect_count: _disconnectCount,
+    last_launch_at: _lastLaunchAt,
+    max_nav: BROWSER_CONFIG.maxNav,
+    active_nav: _navCount,
+    queued_nav: _navQueue.length,
+  };
 }

@@ -1,8 +1,8 @@
 import { withBrowserPage } from '../browser.js';
 import { scoreResult, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const DDG_HTML_URL = 'https://html.duckduckgo.com/html/';
-const TIMEOUT_MS = 10000;
 
 let _challengeCooldown = 0;
 
@@ -12,7 +12,7 @@ export async function searchDdg(query, limit = 10) {
   return withBrowserPage(async (page) => {
     const url = new URL(DDG_HTML_URL);
     url.searchParams.set('q', query);
-    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: SEARCH_CONFIG.searchTimeoutMs });
 
     const challenged = await page.evaluate(() => {
       const hasCaptcha = !!document.querySelector('#challenge-form, #captcha-form, .cf-challenge-running');

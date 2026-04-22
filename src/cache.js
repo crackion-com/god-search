@@ -3,11 +3,16 @@
  * All logging → console.error.
  */
 
-const TTL_MS = 10 * 60 * 1000; // 10 minutes
-const MAX_ENTRIES = 256;
+import { CACHE_CONFIG } from './config.js';
 
 const _cache = new Map(); // key → { time, value }
 const _inflight = new Map(); // key → Promise
+const _stats = {
+  hits: 0,
+  misses: 0,
+  inflightHits: 0,
+  writes: 0,
+};
 
 function _makeKey(query, opts = {}) {
   const engines = opts.engines ? [...opts.engines].sort().join(',') : 'all';
@@ -18,7 +23,7 @@ function _makeKey(query, opts = {}) {
 function _getCache(key) {
   const entry = _cache.get(key);
   if (!entry) return null;
-  if (Date.now() - entry.time > TTL_MS) {
+  if (Date.now() - entry.time > CACHE_CONFIG.ttlMs) {
     _cache.delete(key);
     return null;
   }
@@ -31,14 +36,15 @@ function _getCache(key) {
 function _setCache(key, value) {
   // Evict expired entries first
   for (const [k, v] of _cache) {
-    if (Date.now() - v.time > TTL_MS) _cache.delete(k);
+    if (Date.now() - v.time > CACHE_CONFIG.ttlMs) _cache.delete(k);
   }
   _cache.delete(key);
   _cache.set(key, { time: Date.now(), value });
   // Enforce max size — Map insertion order = oldest first
-  while (_cache.size > MAX_ENTRIES) {
+  while (_cache.size > CACHE_CONFIG.maxEntries) {
     _cache.delete(_cache.keys().next().value);
   }
+  _stats.writes += 1;
 }
 
 /**
@@ -51,10 +57,13 @@ export async function withCache(query, opts, fn) {
 
   const cached = _getCache(key);
   if (cached) {
+    _stats.hits += 1;
     return { ...cached, fromCache: true };
   }
+  _stats.misses += 1;
 
   if (_inflight.has(key)) {
+    _stats.inflightHits += 1;
     return _inflight.get(key);
   }
 
@@ -75,5 +84,11 @@ export function updateCache(query, opts, value) {
 }
 
 export function cacheStats() {
-  return { size: _cache.size, inflight: _inflight.size };
+  return {
+    size: _cache.size,
+    inflight: _inflight.size,
+    ttl_ms: CACHE_CONFIG.ttlMs,
+    max_entries: CACHE_CONFIG.maxEntries,
+    ..._stats,
+  };
 }

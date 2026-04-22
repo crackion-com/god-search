@@ -1,8 +1,8 @@
 import { withBrowserPage } from '../browser.js';
 import { scoreResult, registrableDomain } from '../scoring.js';
+import { SEARCH_CONFIG } from '../config.js';
 
 const GOOGLE_URL = 'https://www.google.com/search';
-const TIMEOUT_MS = 10000;
 
 let _challengeCooldown = 0;
 
@@ -14,7 +14,7 @@ export async function searchGoogle(query, limit = 10) {
     url.searchParams.set('q', query);
     url.searchParams.set('num', '10');
     url.searchParams.set('hl', 'en');
-    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    await page.goto(url.toString(), { waitUntil: 'domcontentloaded', timeout: SEARCH_CONFIG.searchTimeoutMs });
 
     const challenged = await page.evaluate(() => {
       const hasCaptcha = !!document.querySelector('#captcha-form, #recaptcha, form[action*="CaptchaRedirect"]');

@@ -1,11 +1,9 @@
 import { withBrowserPage } from './browser.js';
-
-const MAX_CONTENT_CHARS = 50_000;
-const TIMEOUT_MS = 15000;
+import { SEARCH_CONFIG } from './config.js';
 
 export async function extractPage(url) {
   return withBrowserPage(async (page) => {
-    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: TIMEOUT_MS });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: SEARCH_CONFIG.extractTimeoutMs });
 
     return page.evaluate((maxChars) => {
       const removeSelectors = [
@@ -33,6 +31,6 @@ export async function extractPage(url) {
         .slice(0, maxChars);
 
       return { url: location.href, title: document.title.trim(), content: text, wordCount: text.split(/\s+/).filter(Boolean).length };
-    }, MAX_CONTENT_CHARS);
+    }, SEARCH_CONFIG.maxContentChars);
   });
 }
