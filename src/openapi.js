@@ -42,7 +42,7 @@ export function buildOpenApiSpec() {
                       type: 'array',
                       items: {
                         type: 'string',
-                        enum: ['ddg', 'bing', 'brave', 'google', 'reddit', 'github', 'wikipedia'],
+                        enum: ['official', 'ddg', 'bing', 'brave', 'google', 'reddit', 'github', 'stackoverflow', 'hackernews', 'npm', 'wikipedia'],
                       },
                     },
                     verbose: { type: 'boolean', default: false },

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Synthetic Search Results</title>
+  </head>
+  <body>
+    <header role="banner">
+      <a href="https://search.example/">Search home</a>
+      <a href="https://search.example/images?q=adaptive+extraction">Images</a>
+    </header>
+
+    <main id="search" role="main">
+      <div data-text-ad="1" class="g ad">
+        <h3><a href="https://ads.example/buy-placement">Sponsored placement</a></h3>
+        <span class="VwiC3b">This is paid search noise and must not be extracted.</span>
+      </div>
+
+      <div class="g" data-hveid="organic-1" data-ved="1">
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelectorAll"><h3>Document querySelectorAll API</h3></a>
+        <div class="VwiC3b">MDN reference for querying DOM elements with CSS selectors.</div>
+      </div>
+      <div class="g" data-hveid="organic-2" data-ved="2">
+        <a href="https://www.google.com/url?q=https%3A%2F%2Fdocs.python.org%2F3%2Flibrary%2Fhtml.parser.html&sa=U&ved=abc"><h3>html.parser documentation</h3></a>
+        <div data-sncf="1">Python documentation for parsing HTML in tests and tools.</div>
+      </div>
+      <div class="g" data-hveid="organic-3" data-ved="3">
+        <a href="https://nodejs.org/api/url.html"><h3>Node.js URL API</h3></a>
+        <span class="VwiC3b">Node.js URL utilities for resolving and normalizing links.</span>
+      </div>
+      <div class="g" data-hveid="organic-4" data-ved="4">
+        <a href="https://playwright.dev/docs/evaluating"><h3>Playwright evaluate</h3></a>
+        <span data-content-feature="snippet">Run browser-side JavaScript from tests and automation.</span>
+      </div>
+      <div class="g" data-hveid="organic-5" data-ved="5">
+        <a href="https://developer.chrome.com/docs/devtools/"><h3>Chrome DevTools documentation</h3></a>
+        <div style="display:block"><span>Browser debugging and inspection documentation.</span></div>
+      </div>
+      <div class="g" data-hveid="organic-6" data-ved="6">
+        <a href="https://web.dev/articles/accessibility"><h3>Accessibility fundamentals</h3></a>
+        <span class="VwiC3b">Practical guidance for accessible web experiences.</span>
+      </div>
+      <div class="g" data-hveid="organic-7" data-ved="7">
+        <a href="https://www.w3.org/TR/selectors-4/"><h3>Selectors Level 4</h3></a>
+        <span class="VwiC3b">Specification for CSS selectors used by query engines.</span>
+      </div>
+      <div class="g" data-hveid="organic-8" data-ved="8">
+        <a href="https://html.spec.whatwg.org/multipage/"><h3>HTML living standard</h3></a>
+        <span class="VwiC3b">The living standard for HTML parsing and document structure.</span>
+      </div>
+      <div class="g" data-hveid="organic-9" data-ved="9">
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/closest"><h3>Element closest API</h3></a>
+        <span class="VwiC3b">Find ancestor elements using selector matching.</span>
+      </div>
+      <div class="g" data-hveid="organic-10" data-ved="10">
+        <a href="https://tc39.es/ecma262/"><h3>ECMAScript language specification</h3></a>
+        <span class="VwiC3b">The JavaScript language specification.</span>
+      </div>
+
+      <div class="g duplicate" data-hveid="duplicate-3" data-ved="dup">
+        <a href="https://nodejs.org/api/url.html"><h3>Node.js URL API duplicate</h3></a>
+        <span class="VwiC3b">Duplicate organic URL that should be collapsed.</span>
+      </div>
+
+      <aside>
+        <a href="https://shopping.example/adaptive-extraction">Shopping result noise</a>
+        <a href="https://maps.example/search?q=adaptive+extraction">Map result noise</a>
+      </aside>
+    </main>
+
+    <nav aria-label="pagination">
+      <a href="https://search.example/search?q=adaptive+extraction&page=2">Next</a>
+      <a href="https://search.example/preferences">Settings</a>
+    </nav>
+    <footer>
+      <a href="https://search.example/privacy">Privacy</a>
+      <a href="https://search.example/terms">Terms</a>
+    </footer>
+  </body>
+</html>

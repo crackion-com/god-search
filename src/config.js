@@ -49,10 +49,10 @@ export const BROWSER_CONFIG = {
 };
 
 export const SEARCH_CONFIG = {
-  fastPathMs: readIntEnv('GOD_SEARCH_FAST_PATH_MS', 2000, { min: 100 }),
-  fastPathMaxMs: readIntEnv('GOD_SEARCH_FAST_PATH_MAX_MS', 4500, { min: 500 }),
+  fastPathMs: readIntEnv('GOD_SEARCH_FAST_PATH_MS', 1600, { min: 100 }),
+  fastPathMaxMs: readIntEnv('GOD_SEARCH_FAST_PATH_MAX_MS', 1900, { min: 500 }),
   fastPathPollMs: readIntEnv('GOD_SEARCH_FAST_PATH_POLL_MS', 100, { min: 25 }),
-  fastPathMinEngines: readIntEnv('GOD_SEARCH_FAST_PATH_MIN_ENGINES', 4, { min: 1, max: 7 }),
+  fastPathMinEngines: readIntEnv('GOD_SEARCH_FAST_PATH_MIN_ENGINES', 4, { min: 1, max: 8 }),
   searchTimeoutMs: readIntEnv('GOD_SEARCH_SEARCH_TIMEOUT_MS', 10000, { min: 1000 }),
   apiTimeoutMs: readIntEnv('GOD_SEARCH_API_TIMEOUT_MS', 8000, { min: 1000 }),
   extractTimeoutMs: readIntEnv('GOD_SEARCH_EXTRACT_TIMEOUT_MS', 15000, { min: 1000 }),
@@ -62,6 +62,13 @@ export const SEARCH_CONFIG = {
   braveApiKey: readStringEnv('BRAVE_SEARCH_API_KEY', ''),
   braveApiCountry: readStringEnv('GOD_SEARCH_BRAVE_COUNTRY', 'us'),
   braveApiSearchLang: readStringEnv('GOD_SEARCH_BRAVE_SEARCH_LANG', 'en'),
+  githubToken: readStringEnv('GITHUB_TOKEN', ''),
+};
+
+export const REDDIT_CONFIG = {
+  clientId: readStringEnv('REDDIT_CLIENT_ID', ''),
+  clientSecret: readStringEnv('REDDIT_CLIENT_SECRET', ''),
+  userAgent: readStringEnv('REDDIT_USER_AGENT', 'god-search/1.0 (research tool; github.com/crackion-com/god-search)'),
 };
 
 export const AGENT_CONFIG = {

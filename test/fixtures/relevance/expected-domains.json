@@ -1,0 +1,22 @@
+{
+  "q001": { "must_have_top3": ["nodejs.org"], "blocked_top5": ["medium.com"] },
+  "q002": { "must_have_top3": ["openai.com"], "blocked_top5": ["medium.com"] },
+  "q003": { "must_have_top3": ["python.org"], "blocked_top5": ["medium.com"] },
+  "q004": { "must_have_top3": ["rust-lang.org"], "blocked_top5": ["medium.com"] },
+  "q005": { "must_have_top3": ["react.dev"], "blocked_top5": ["medium.com"] },
+  "q006": { "must_have_top3": ["postgresql.org"], "blocked_top5": ["medium.com"] },
+  "q007": { "must_have_top3": ["github.com"], "blocked_top5": ["medium.com"] },
+  "q008": { "must_have_top3": ["github.com"], "blocked_top5": ["medium.com"] },
+  "q009": { "must_have_top3": ["github.com"], "blocked_top5": ["medium.com"] },
+  "q010": { "must_have_top3": ["github.com"], "blocked_top5": ["medium.com"] },
+  "q011": { "must_have_top3": ["wikipedia.org"], "blocked_top5": ["medium.com"] },
+  "q012": { "must_have_top3": ["wikipedia.org"], "blocked_top5": ["medium.com"] },
+  "q013": { "must_have_top3": ["wikipedia.org"], "blocked_top5": ["medium.com"] },
+  "q014": { "must_have_top3": ["reddit.com"], "blocked_top5": ["medium.com"] },
+  "q015": { "must_have_top3": ["reddit.com"], "blocked_top5": ["medium.com"] },
+  "q016": { "must_have_top3": ["reddit.com"], "blocked_top5": ["medium.com"] },
+  "q017": { "must_have_top3": ["docs.docker.com"], "blocked_top5": ["medium.com"] },
+  "q018": { "must_have_top3": ["github.com"], "blocked_top5": ["medium.com"] },
+  "q019": { "must_have_top3": ["w3.org"], "blocked_top5": ["medium.com"] },
+  "q020": { "must_have_top3": ["git-scm.com"], "blocked_top5": ["medium.com"] }
+}

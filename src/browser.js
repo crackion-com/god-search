@@ -6,10 +6,28 @@ let _launchPromise = null;
 let _launchCount = 0;
 let _disconnectCount = 0;
 let _lastLaunchAt = null;
+let _lastLaunchError = null;
+let _launchImpl = launch;
 
 // Limit concurrent browser page navigations to prevent CloakBrowser crashes
 let _navCount = 0;
 const _navQueue = [];
+
+export function __setLaunchForTests(fn) {
+  _launchImpl = fn || launch;
+}
+
+export function __resetForTests() {
+  _browser = null;
+  _launchPromise = null;
+  _launchCount = 0;
+  _disconnectCount = 0;
+  _lastLaunchAt = null;
+  _lastLaunchError = null;
+  _navCount = 0;
+  _navQueue.length = 0;
+  _launchImpl = launch;
+}
 
 async function _acquireNav() {
   if (_navCount < BROWSER_CONFIG.maxNav) { _navCount++; return; }
@@ -23,21 +41,32 @@ function _releaseNav() {
 }
 
 async function _launchBrowser() {
-  const b = await launch({
-    headless: true,
-    args: ['--no-sandbox', '--disable-dev-shm-usage'],
-  });
-  b.on('disconnected', () => {
-    console.error('[browser] disconnected — will relaunch on next use');
-    _disconnectCount++;
-    _browser = null;
-  });
-  _browser = b;
-  _launchPromise = null;
-  _launchCount++;
-  _lastLaunchAt = new Date().toISOString();
-  console.error('[browser] launched');
-  return b;
+  try {
+    const b = await _launchImpl({
+      headless: true,
+      args: ['--no-sandbox', '--disable-dev-shm-usage'],
+    });
+    b.on('disconnected', () => {
+      console.error('[browser] disconnected — will relaunch on next use');
+      _disconnectCount++;
+      _browser = null;
+    });
+    _browser = b;
+    _launchPromise = null;
+    _launchCount++;
+    _lastLaunchAt = new Date().toISOString();
+    _lastLaunchError = null;
+    console.error('[browser] launched');
+    return b;
+  } catch (err) {
+    _launchPromise = null;
+    _lastLaunchError = {
+      at: new Date().toISOString(),
+      name: err?.name || 'Error',
+      message: err?.message || String(err),
+    };
+    throw err;
+  }
 }
 
 export async function ensureBrowser() {
@@ -58,12 +87,13 @@ export async function closeBrowser() {
 // Run fn(page) with a throttled browser page.
 export async function withBrowserPage(fn) {
   await _acquireNav();
-  const browser = await ensureBrowser();
-  const page = await browser.newPage();
+  let page = null;
   try {
+    const browser = await ensureBrowser();
+    page = await browser.newPage();
     return await fn(page);
   } finally {
-    await page.close().catch(() => {});
+    if (page) await page.close().catch(() => {});
     _releaseNav();
   }
 }
@@ -74,6 +104,7 @@ export function browserStatus() {
     launch_count: _launchCount,
     disconnect_count: _disconnectCount,
     last_launch_at: _lastLaunchAt,
+    last_launch_error: _lastLaunchError,
     max_nav: BROWSER_CONFIG.maxNav,
     active_nav: _navCount,
     queued_nav: _navQueue.length,

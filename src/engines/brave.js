@@ -1,10 +1,30 @@
 import { withBrowserPage } from '../browser.js';
 import { scoreResult, registrableDomain } from '../scoring.js';
 import { SEARCH_CONFIG } from '../config.js';
+import { extractSerpResults } from '../extraction/serp-extractor.js';
+import { providerError } from '../provider-errors.js';
 
 const BRAVE_URL = 'https://search.brave.com/search';
 const BRAVE_API_URL = 'https://api.search.brave.com/res/v1/web/search';
+const BRAVE_EXTRACT_CONFIG = {
+  engine: 'brave',
+  engineHostnames: ['search.brave.com'],
+  primarySelectors: {
+    result: ['[data-type="web"]'],
+    title: ['.title', '.heading', 'h2', 'h3'],
+    link: ['a[href]'],
+    snippet: ['.snippet-content', '.snippet', '.description', 'p'],
+  },
+  adSignals: ['sponsored', 'advertisement'],
+  blockedSignals: ['confirm you', 'human being', "i'm not a robot", 'pow captcha'],
+  consentSignals: ['brave privacy'],
+  noResultSignals: ['no results found', 'no results for'],
+};
 let _challengeCooldown = 0;
+
+export function __resetForTests() {
+  _challengeCooldown = 0;
+}
 
 async function searchBraveViaApi(query, limit = 10) {
   if (!SEARCH_CONFIG.braveApiKey) {
@@ -68,12 +88,68 @@ function shouldUseBraveApi() {
   return !!SEARCH_CONFIG.braveApiKey;
 }
 
+function isSearchBraveUrl(urlString) {
+  try {
+    return /(^|\.)search\.brave\.com$/i.test(new URL(urlString).hostname);
+  } catch {
+    return true;
+  }
+}
+
+function normalizeExtractorResults(query, results, limit) {
+  return results
+    .filter(r => r.title && r.url?.startsWith('http') && !isSearchBraveUrl(r.url))
+    .map(r => ({
+      title: r.title,
+      url: r.url,
+      snippet: (r.snippet || '').slice(0, 300),
+      score: scoreResult(query, r.url, r.title, r.snippet || ''),
+      domain: registrableDomain(r.url),
+      engine: 'brave',
+    }))
+    .slice(0, limit);
+}
+
+function handleExtractionStatus(extracted) {
+  if (extracted.status === 'empty') return [];
+  if (extracted.status === 'blocked') {
+    const retryAfterMs = 30_000;
+    _challengeCooldown = Date.now() + retryAfterMs;
+    throw providerError('Brave challenge page — 30s cooldown', {
+      provider: 'brave',
+      code: 'cooldown',
+      state: 'cooldown',
+      retryAfterMs,
+      retryable: true,
+      degradation: true,
+    });
+  }
+  if (extracted.status === 'consent') {
+    throw new Error('Brave consent page prevented result extraction');
+  }
+  if (extracted.status === 'failed') {
+    const reason = extracted.diagnostics?.reason || extracted.diagnostics?.error || 'unknown extractor failure';
+    throw new Error(`Brave extraction failed: ${reason}`);
+  }
+  return null;
+}
+
 export async function searchBrave(query, limit = 10) {
   if (shouldUseBraveApi()) {
     return searchBraveViaApi(query, limit);
   }
 
-  if (Date.now() < _challengeCooldown) throw new Error('Brave challenge page — 30s cooldown');
+  if (Date.now() < _challengeCooldown) {
+    const retryAfterMs = _challengeCooldown - Date.now();
+    throw providerError('Brave challenge page — 30s cooldown', {
+      provider: 'brave',
+      code: 'cooldown',
+      state: 'cooldown',
+      retryAfterMs,
+      retryable: true,
+      degradation: true,
+    });
+  }
 
   return withBrowserPage(async (page) => {
     const url = new URL(BRAVE_URL);
@@ -83,88 +159,10 @@ export async function searchBrave(query, limit = 10) {
     await page.waitForLoadState('networkidle', { timeout: 2000 }).catch(() => {});
     await page.waitForSelector('[data-type="web"] a[href], .snippet-title a[href], .result-title a[href], main a[href^="http"]', { timeout: 3000 }).catch(() => {});
 
-    const challenged = await page.evaluate(() => {
-      const title = document.title.toLowerCase();
-      const body = document.body?.innerText?.toLowerCase() || '';
-      return title.includes('pow captcha') || body.includes('confirm you’re a human being') || body.includes("i'm not a robot");
-    });
-    if (challenged) {
-      _challengeCooldown = Date.now() + 30_000;
-      throw new Error('Brave challenge page — 30s cooldown');
-    }
+    const extracted = await extractSerpResults(page, { ...BRAVE_EXTRACT_CONFIG, query, limit: 15 });
+    const terminal = handleExtractionStatus(extracted);
+    if (terminal !== null) return terminal;
 
-    const raw = await page.evaluate(() => {
-      const items = [];
-      const seen = new Set();
-
-      const containers = document.querySelectorAll('[data-type="web"]');
-      for (const container of containers) {
-        if (container.id === 'summarizer' || container.closest('#summarizer')) continue;
-        const linkEl = container.querySelector('a[href]');
-        if (!linkEl) continue;
-        const href = linkEl.getAttribute('href') || '';
-        if (!href.startsWith('http') || seen.has(href)) continue;
-        seen.add(href);
-        const titleEl =
-          container.querySelector('.title') ||
-          container.querySelector('.heading') ||
-          container.querySelector('h2, h3');
-        if (!titleEl) continue;
-        const snippetEl =
-          container.querySelector('.snippet-content') ||
-          container.querySelector('.snippet') ||
-          container.querySelector('.description') ||
-          container.querySelector('p');
-        items.push({ title: titleEl.innerText.trim(), url: href, snippet: snippetEl ? snippetEl.innerText.trim() : '' });
-        if (items.length >= 15) break;
-      }
-
-      if (items.length === 0) {
-        document.querySelectorAll('.snippet-title a[href], .result-title a[href]').forEach(a => {
-          const href = a.getAttribute('href');
-          if (!href?.startsWith('http') || seen.has(href)) return;
-          seen.add(href);
-          items.push({ title: a.innerText.trim(), url: href, snippet: '' });
-        });
-      }
-
-      if (items.length === 0) {
-        document.querySelectorAll('main a[href^="http"], a[href^="http"]').forEach(a => {
-          if (items.length >= 15) return;
-          const href = a.getAttribute('href') || '';
-          if (!href.startsWith('http') || seen.has(href)) return;
-          try {
-            const u = new URL(href);
-            if (/search\.brave\.com$/i.test(u.hostname)) return;
-          } catch {
-            return;
-          }
-          const title =
-            a.innerText.trim() ||
-            a.closest('article, section, div, li')?.querySelector('h1, h2, h3')?.innerText.trim() ||
-            '';
-          if (!title || title.length < 3) return;
-          const snippet =
-            a.closest('article, section, div, li')?.querySelector('p')?.innerText.trim() ||
-            '';
-          seen.add(href);
-          items.push({ title, url: href, snippet });
-        });
-      }
-
-      return items;
-    });
-
-    return raw
-      .filter(r => r.title && r.url)
-      .map(r => ({
-        title: r.title,
-        url: r.url,
-        snippet: r.snippet.slice(0, 300),
-        score: scoreResult(query, r.url, r.title, r.snippet),
-        domain: registrableDomain(r.url),
-        engine: 'brave',
-      }))
-      .slice(0, limit);
+    return normalizeExtractorResults(query, extracted.results || [], limit);
   });
 }

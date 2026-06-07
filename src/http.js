@@ -12,6 +12,7 @@ import { runSearch } from './merger.js';
 import { extractPage } from './extractor.js';
 import { closeBrowser, browserStatus } from './browser.js';
 import { buildOpenApiSpec } from './openapi.js';
+import { buildSearchResponse } from './response.js';
 import {
   noteError,
   noteExtractComplete,
@@ -39,35 +40,44 @@ async function readBody(req) {
   });
 }
 
-export async function startHttp() {
-  if (BROWSER_CONFIG.prewarmOnStart) {
-    try {
-      await import('./browser.js').then(({ ensureBrowser }) => ensureBrowser());
-    } catch (err) {
-      noteError('http.prewarm', err);
-      console.error('[http] browser prewarm failed:', err.message);
-    }
-  }
+export function createHttpServer(deps = {}) {
+  const app = deps.app || APP;
+  const httpConfig = deps.httpConfig || HTTP_CONFIG;
+  const runSearchDep = deps.runSearch || runSearch;
+  const extractDep = deps.extract || deps.extractPage || extractPage;
+  const withCacheDep = deps.withCache || withCache;
+  const cacheStatsDep = deps.cacheStats || cacheStats;
+  const browserStatusDep = deps.browserStatus || browserStatus;
+  const buildOpenApiSpecDep = deps.buildOpenApiSpec || buildOpenApiSpec;
+  const buildSearchResponseDep = deps.buildSearchResponse || buildSearchResponse;
+  const runtime = deps.runtime || {};
+  const noteErrorDep = deps.noteError || runtime.noteError || noteError;
+  const noteExtractCompleteDep = deps.noteExtractComplete || runtime.noteExtractComplete || noteExtractComplete;
+  const noteExtractStartDep = deps.noteExtractStart || runtime.noteExtractStart || noteExtractStart;
+  const noteHealthRequestDep = deps.noteHealthRequest || runtime.noteHealthRequest || noteHealthRequest;
+  const noteSearchCompleteDep = deps.noteSearchComplete || runtime.noteSearchComplete || noteSearchComplete;
+  const noteSearchStartDep = deps.noteSearchStart || runtime.noteSearchStart || noteSearchStart;
+  const runtimeSnapshotDep = deps.runtimeSnapshot || runtime.runtimeSnapshot || runtimeSnapshot;
 
   const server = createServer(async (req, res) => {
-    const url = new URL(req.url, `http://${HTTP_CONFIG.host}:${HTTP_CONFIG.port}`);
+    const url = new URL(req.url, `http://${httpConfig.host}:${httpConfig.port}`);
 
     try {
       // GET /health
       if (req.method === 'GET' && url.pathname === '/health') {
-        noteHealthRequest();
+        noteHealthRequestDep();
         return json(res, 200, {
           status: 'ok',
           ready: true,
-          app: APP,
-          browser: browserStatus(),
-          cache: cacheStats(),
-          runtime: runtimeSnapshot(),
+          app,
+          browser: browserStatusDep(),
+          cache: cacheStatsDep(),
+          runtime: runtimeSnapshotDep(),
         });
       }
 
       if (req.method === 'GET' && url.pathname === '/openapi.json') {
-        return json(res, 200, buildOpenApiSpec());
+        return json(res, 200, buildOpenApiSpecDep());
       }
 
       // POST /search
@@ -78,23 +88,22 @@ export async function startHttp() {
           return json(res, 400, { error: 'query is required' });
         }
         const startedAt = Date.now();
-        noteSearchStart(query);
+        noteSearchStartDep(query);
         const cacheOpts = { limit, engines };
-        const result = await withCache(query, cacheOpts, () =>
-          runSearch(query, { limit, engines, _cacheOpts: cacheOpts })
+        const result = await withCacheDep(query, cacheOpts, () =>
+          runSearchDep(query, { limit, engines, _cacheOpts: cacheOpts })
         );
-        noteSearchComplete({
+        noteSearchCompleteDep({
           elapsedMs: Date.now() - startedAt,
           engineErrors: result.engineStats?.errors || {},
         });
-        const output = { query, results: result.results, total: result.results.length };
-        if (verbose) { output.elapsed_ms = result.elapsed_ms; output.engines = result.engineStats; }
-        if (result.fromCache) output.cached = true;
-        output.partial = !!result.partial;
-        output.meta = {
-          app: APP,
-          cache: cacheStats(),
-        };
+        const output = buildSearchResponseDep({
+          query,
+          result,
+          verbose,
+          app,
+          cache: cacheStatsDep(),
+        });
         return json(res, 200, output);
       }
 
@@ -106,22 +115,37 @@ export async function startHttp() {
           return json(res, 400, { error: 'url is required' });
         }
         const startedAt = Date.now();
-        noteExtractStart(targetUrl);
-        const result = await extractPage(targetUrl);
-        noteExtractComplete({ elapsedMs: Date.now() - startedAt });
-        result.meta = { app: APP };
+        noteExtractStartDep(targetUrl);
+        const result = await extractDep(targetUrl);
+        noteExtractCompleteDep({ elapsedMs: Date.now() - startedAt });
+        result.meta = { app };
         return json(res, 200, result);
       }
 
       json(res, 404, { error: 'Not found', routes: ['GET /health', 'GET /openapi.json', 'POST /search', 'POST /extract'] });
     } catch (err) {
-      noteError('http.request', err);
+      noteErrorDep('http.request', err);
       console.error('[http] error:', err);
       const isExtract = req.method === 'POST' && new URL(req.url, 'http://x').pathname === '/extract';
       const msg = isExtract ? `Extract failed: ${err.message.split('\n')[0]}` : err.message;
       json(res, 500, { error: msg });
     }
   });
+
+  return server;
+}
+
+export async function startHttp() {
+  if (BROWSER_CONFIG.prewarmOnStart) {
+    try {
+      await import('./browser.js').then(({ ensureBrowser }) => ensureBrowser());
+    } catch (err) {
+      noteError('http.prewarm', err);
+      console.error('[http] browser prewarm failed:', err.message);
+    }
+  }
+
+  const server = createHttpServer();
 
   server.listen(HTTP_CONFIG.port, HTTP_CONFIG.host, () => {
     console.error(`[http] god-search HTTP daemon listening on http://${HTTP_CONFIG.host}:${HTTP_CONFIG.port}`);

@@ -1,0 +1,48 @@
+{
+  "name": "no-key-free-benchmark-plan",
+  "scope": "Evaluate god-search behavior when no paid API keys or credential-backed providers are available.",
+  "runner": {
+    "mode": "live",
+    "command": "npm run benchmark:live",
+    "primary_system": "god-search-default",
+    "credential_policy": "Strip BRAVE_SEARCH_API_KEY, GITHUB_TOKEN, REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, TAVILY_API_KEY, EXA_API_KEY, FIRECRAWL_API_KEY, and SERPER_API_KEY from the default profile.",
+    "brave_policy": "Disable Brave in the default no-key profile so results reflect engines that can run without paid credentials."
+  },
+  "query_mix": {
+    "docs": {
+      "count": 6,
+      "purpose": "Official documentation retrieval for common developer tasks."
+    },
+    "code": {
+      "count": 4,
+      "purpose": "Repository and implementation discovery where GitHub-like results matter."
+    },
+    "discussion": {
+      "count": 3,
+      "purpose": "Forum-style searches where Reddit or community pages may be relevant."
+    },
+    "factual": {
+      "count": 6,
+      "purpose": "Stable fact lookups that expose whether the no-key profile can find direct authoritative sources."
+    },
+    "general": {
+      "count": 7,
+      "purpose": "Standards, guides, and practical web searches that reward primary or durable reference pages."
+    }
+  },
+  "fairness_guardrails": [
+    "Treat the offline fixture benchmark as a deterministic regression check, not a leaderboard claim.",
+    "Keep qrels shallow unless produced through blind pooled judging, and report judgment coverage.",
+    "Prefer stable primary or authoritative sources for grade 3 judgments.",
+    "Use grade 1 for related-but-weak pages that may be plausible but should not count as relevant.",
+    "Compare no-key results only against systems run in the same live benchmark snapshot."
+  ],
+  "expanded_query_ids": [
+    "q021",
+    "q022",
+    "q023",
+    "q024",
+    "q025",
+    "q026"
+  ]
+}

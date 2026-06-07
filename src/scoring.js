@@ -3,6 +3,8 @@
  * No side effects. Pure functions only.
  */
 
+import { keywordTokens, normalizeText, tokenHitCount } from './language.js';
+
 const OFFICIAL_HOST_PATTERNS = [
   /^docs\./i,
   /^developer\./i,
@@ -39,6 +41,14 @@ const OFFICIAL_REGISTRABLE_DOMAINS = new Set([
   'langchain.com',
   'crewai.com',
   'sst.dev',
+  'postgresql.org',
+  'docker.com',
+  'react.dev',
+  'git-scm.com',
+  'w3.org',
+  'unicode.org',
+  'nasa.gov',
+  'cern.ch',
   'python.org',
   'nodejs.org',
   'rust-lang.org',
@@ -51,6 +61,7 @@ const OFFICIAL_REGISTRABLE_DOMAINS = new Set([
 ]);
 
 const LOW_SIGNAL_HOST_PATTERNS = [
+  /^example\.(com|org|net)$/i,
   /^dev\.to$/i,
   /^medium\.com$/i,
   /^towardsdatascience\.com$/i,
@@ -59,15 +70,6 @@ const LOW_SIGNAL_HOST_PATTERNS = [
   /^blog\./i,
   /^substack\.com$/i,
 ];
-
-const STOP_WORDS = new Set([
-  'a', 'an', 'and', 'any', 'best', 'can', 'compare', 'comparison', 'current',
-  'documentation', 'docs', 'find', 'for', 'from', 'give', 'how', 'in', 'into',
-  'is', 'just', 'latest', 'like', 'me', 'of', 'official', 'only', 'or',
-  'provider', 'providers', 'return', 'short', 'should', 'site', 'source',
-  'sources', 'than', 'the', 'then', 'that', 'this', 'url', 'use', 'web',
-  'what', 'with', 'your', 'about', 'also', 'to', 'get', 'using', 'via',
-]);
 
 export function registrableDomain(urlString) {
   try {
@@ -80,21 +82,36 @@ export function registrableDomain(urlString) {
   }
 }
 
-function keywordTokens(query) {
-  return query
-    .toLowerCase()
-    .replace(/["'`]/g, ' ')
-    .split(/[^a-z0-9]+/)
-    .map(t => t.trim())
-    .filter(t => t.length >= 3 && !STOP_WORDS.has(t));
-}
-
-function overlapScore(text, tokens, multiplier) {
+function overlapScore(text, tokens, multiplier, languageContext) {
   let score = 0;
-  const lower = text.toLowerCase();
+  const lower = normalizeText(text, languageContext);
   for (const token of tokens) {
     if (lower.includes(token)) score += multiplier;
   }
+  return score;
+}
+
+function coverageScore(queryTokens, title, snippet, path, languageContext) {
+  if (queryTokens.length < 2) return 0;
+
+  const titleHits = tokenHitCount(queryTokens, title, languageContext);
+  const snippetHits = tokenHitCount(queryTokens, snippet, languageContext);
+  const pathHits = tokenHitCount(queryTokens, path, languageContext);
+  const combinedHits = tokenHitCount(queryTokens, `${title} ${snippet} ${path}`, languageContext);
+  const titleCoverage = titleHits / queryTokens.length;
+  const combinedCoverage = combinedHits / queryTokens.length;
+  const phrase = queryTokens.join(' ');
+  const titleLower = normalizeText(title, languageContext);
+  const combinedLower = normalizeText(`${title} ${snippet}`, languageContext);
+
+  let score = 0;
+  if (titleLower.includes(phrase)) score += 3;
+  if (combinedLower.includes(phrase)) score += 1;
+  if (titleCoverage >= 0.75) score += 2;
+  if (combinedCoverage >= 0.75) score += 3;
+  if (pathHits >= Math.ceil(queryTokens.length / 2)) score += 1;
+  if (queryTokens.length >= 3 && combinedCoverage < 0.34) score -= 2;
+  if (titleHits === 0 && snippetHits === 0 && pathHits === 0) score -= 2;
   return score;
 }
 
@@ -102,14 +119,14 @@ function overlapScore(text, tokens, multiplier) {
  * Score a single search result. Higher = more relevant / trustworthy.
  * @returns {number}
  */
-export function scoreResult(query, urlString, title, snippet) {
+export function scoreResult(query, urlString, title, snippet, languageContext = {}) {
   let score = 0;
   try {
     const url = new URL(urlString);
     const hostname = url.hostname.replace(/^www\./i, '').toLowerCase();
     const path = url.pathname || '/';
-    const haystack = `${title} ${snippet}`.toLowerCase();
-    const queryTokens = keywordTokens(query);
+    const haystack = normalizeText(`${title} ${snippet}`, languageContext);
+    const queryTokens = keywordTokens(query, languageContext);
     const domain = registrableDomain(urlString);
 
     // Official host prefix (+5)
@@ -138,9 +155,10 @@ export function scoreResult(query, urlString, title, snippet) {
     if (LOW_SIGNAL_HOST_PATTERNS.some(p => p.test(hostname))) score -= 5;
 
     // Keyword overlap
-    score += overlapScore(hostname, queryTokens, 3);
-    score += overlapScore(path, queryTokens, 2);
-    score += overlapScore(haystack, queryTokens, 1);
+    score += overlapScore(hostname, queryTokens, 3, languageContext);
+    score += overlapScore(path, queryTokens, 2, languageContext);
+    score += overlapScore(haystack, queryTokens, 1, languageContext);
+    score += coverageScore(queryTokens, title, snippet, path, languageContext);
 
     // Content signals
     if (haystack.includes('official')) score += 2;

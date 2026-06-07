@@ -20,6 +20,7 @@ import { withCache } from './src/cache.js';
 import { APP, HTTP_CONFIG } from './src/config.js';
 import { runSearch } from './src/merger.js';
 import { closeBrowser } from './src/browser.js';
+import { buildSearchResponse } from './src/response.js';
 
 const require = createRequire(import.meta.url);
 const { version } = require('./package.json');
@@ -61,6 +62,7 @@ if (mode === 'mcp') {
   const limitArg = args.find(a => a.startsWith('--limit=')) || args[args.indexOf('--limit') + 1];
   const limit = limitArg ? parseInt(String(limitArg).replace('--limit=', ''), 10) : 10;
   const verbose = args.includes('--verbose') || args.includes('-v');
+  const settled = args.includes('--settled');
   const fieldsArg = args.find(a => a.startsWith('--fields='));
   const fields = fieldsArg ? new Set(fieldsArg.replace('--fields=', '').split(',')) : null;
 
@@ -70,26 +72,24 @@ if (mode === 'mcp') {
   }
 
   try {
-    const cacheOpts = { limit };
+    const cacheOpts = { limit, mode: settled ? 'settled' : 'fast' };
     const result = await withCache(query, cacheOpts, () =>
-      runSearch(query, { limit, _cacheOpts: cacheOpts })
+      runSearch(query, { limit, awaitBackground: settled })
     );
 
-    const results = fields
-      ? result.results.map(r => Object.fromEntries(Object.entries(r).filter(([k]) => fields.has(k))))
-      : result.results;
-
-    const output = {
+    const output = buildSearchResponse({
       query,
-      results,
-      total: results.length,
-      partial: !!result.partial,
-      meta: { app: APP },
-    };
+      result,
+      verbose,
+      app: APP,
+      cache: null,
+    });
 
-    if (verbose) {
-      output.elapsed_ms = result.elapsed_ms;
-      output.engines = result.engineStats;
+    if (fields) {
+      output.results = output.results.map(r =>
+        Object.fromEntries(Object.entries(r).filter(([k]) => fields.has(k)))
+      );
+      output.total = output.results.length;
     }
 
     // CLI: print to stdout
@@ -103,16 +103,17 @@ if (mode === 'mcp') {
   }
 
 } else {
-  console.error(`${APP.name} v${version} — Free unlimited universal web search
+  console.error(`${APP.name} v${version} — Local agent-native web search sidecar
 
 Usage:
   ${APP.name} mcp                          MCP stdio server
   ${APP.name} serve                        HTTP daemon on http://${HTTP_CONFIG.host}:${HTTP_CONFIG.port}
-  ${APP.name} extract <url>                Extract full page text
+  ${APP.name} extract <url>                Best-effort page extraction
   ${APP.name} "query"                      CLI search (compact JSON)
+  ${APP.name} "query" --settled           Wait for background engines before returning
   ${APP.name} "query" --limit 5           Limit results
   ${APP.name} "query" --fields=title,url  Select specific fields
 
-Engines: DDG, Bing, Google, Reddit, GitHub, Wikipedia (+ Brave opt-in: GOD_SEARCH_ENABLE_BRAVE=true)`);
+Engines: DDG, Bing, Google, Reddit, GitHub, Stack Overflow, Hacker News, npm, Wikipedia (+ Brave opt-in: GOD_SEARCH_ENABLE_BRAVE=true)`);
   process.exit(0);
 }

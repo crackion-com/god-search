@@ -1,0 +1,20 @@
+{"qid":"q001","query":"nodejs documentation","intent":"docs","limit":5}
+{"qid":"q002","query":"openai api reference","intent":"docs","limit":5}
+{"qid":"q003","query":"python pathlib docs","intent":"docs","limit":5}
+{"qid":"q004","query":"rust cargo documentation","intent":"docs","limit":5}
+{"qid":"q005","query":"react useeffect api reference","intent":"docs","limit":5}
+{"qid":"q006","query":"postgresql jsonb documentation","intent":"docs","limit":5}
+{"qid":"q007","query":"github cloakbrowser implementation","intent":"code","limit":5}
+{"qid":"q008","query":"sqlite node bindings github","intent":"code","limit":5}
+{"qid":"q009","query":"playwright stealth implementation github","intent":"code","limit":5}
+{"qid":"q010","query":"fastify websocket github example","intent":"code","limit":5}
+{"qid":"q011","query":"what is retrieval augmented generation","intent":"factual","limit":5}
+{"qid":"q012","query":"history of rust programming language","intent":"factual","limit":5}
+{"qid":"q013","query":"define vector database","intent":"factual","limit":5}
+{"qid":"q014","query":"best local llm reddit discussion","intent":"discussion","limit":5}
+{"qid":"q015","query":"postgres vs sqlite reddit","intent":"discussion","limit":5}
+{"qid":"q016","query":"mechanical keyboard switch comparison reddit","intent":"discussion","limit":5}
+{"qid":"q017","query":"docker compose environment variables","intent":"general","limit":5}
+{"qid":"q018","query":"markdown table syntax","intent":"general","limit":5}
+{"qid":"q019","query":"web accessibility contrast ratio","intent":"general","limit":5}
+{"qid":"q020","query":"git rebase interactive guide","intent":"general","limit":5}

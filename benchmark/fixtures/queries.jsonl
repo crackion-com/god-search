@@ -1,0 +1,26 @@
+{"qid":"q001","query":"nodejs documentation","intent":"docs","limit":20}
+{"qid":"q002","query":"openai api reference","intent":"docs","limit":20}
+{"qid":"q003","query":"python pathlib docs","intent":"docs","limit":20}
+{"qid":"q004","query":"rust cargo documentation","intent":"docs","limit":20}
+{"qid":"q005","query":"react useeffect api reference","intent":"docs","limit":20}
+{"qid":"q006","query":"postgresql jsonb documentation","intent":"docs","limit":20}
+{"qid":"q007","query":"github cloakbrowser implementation","intent":"code","limit":20}
+{"qid":"q008","query":"sqlite node bindings github","intent":"code","limit":20}
+{"qid":"q009","query":"playwright stealth implementation github","intent":"code","limit":20}
+{"qid":"q010","query":"fastify websocket github example","intent":"code","limit":20}
+{"qid":"q011","query":"what is retrieval augmented generation","intent":"factual","limit":20}
+{"qid":"q012","query":"history of rust programming language","intent":"factual","limit":20}
+{"qid":"q013","query":"define vector database","intent":"factual","limit":20}
+{"qid":"q014","query":"best local llm reddit discussion","intent":"discussion","limit":20}
+{"qid":"q015","query":"postgres vs sqlite reddit","intent":"discussion","limit":20}
+{"qid":"q016","query":"mechanical keyboard switch comparison reddit","intent":"discussion","limit":20}
+{"qid":"q017","query":"docker compose environment variables","intent":"general","limit":20}
+{"qid":"q018","query":"markdown table syntax","intent":"general","limit":20}
+{"qid":"q019","query":"web accessibility contrast ratio","intent":"general","limit":20}
+{"qid":"q020","query":"git rebase interactive guide","intent":"general","limit":20}
+{"qid":"q021","query":"who invented the world wide web","intent":"factual","limit":20}
+{"qid":"q022","query":"what is the capital of australia","intent":"factual","limit":20}
+{"qid":"q023","query":"nasa artemis program overview","intent":"factual","limit":20}
+{"qid":"q024","query":"csv file format specification","intent":"general","limit":20}
+{"qid":"q025","query":"robots.txt standard","intent":"general","limit":20}
+{"qid":"q026","query":"unicode bidirectional algorithm explanation","intent":"general","limit":20}

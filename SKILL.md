@@ -1,6 +1,6 @@
 ---
 name: god-search
-description: Universal web search for AI agents — Google, Bing, DDG, Brave, Reddit, GitHub, Wikipedia via CloakBrowser and public JSON APIs. MCP, HTTP, and CLI. Brave is challenge-prone and opt-in for merged search.
+description: Multi-engine web search for AI agents — Google, Bing, DDG, Brave, Reddit, GitHub, Stack Overflow, Hacker News, npm, Wikipedia via CloakBrowser and public JSON APIs. MCP, HTTP, and CLI. Brave is challenge-prone and opt-in for merged search.
 version: 1.1.1
 author: crackion
 license: MIT
@@ -18,7 +18,7 @@ mkdir -p .cursor/skills && cp SKILL.md .cursor/skills/god-search.md
 
 # god-search
 
-Token-optimized web search for AI agents. Supports MCP, HTTP, and CLI. Warm persistent browser. Compact JSON. 7 engines available.
+Compact web search for AI agents. Supports MCP, HTTP, and CLI. Warm persistent browser. 9 no-key engine integrations available, plus Brave as opt-in.
 
 ## For AI Agents — Use This
 
@@ -44,6 +44,7 @@ curl -s http://127.0.0.1:3847/extract -H 'Content-Type: application/json' \
 **CLI (cold, no daemon needed):**
 ```bash
 god-search "query" --limit 5
+god-search "query" --limit 5 --settled
 god-search "query" --limit 5 --fields=title,url,snippet
 ```
 
@@ -70,12 +71,15 @@ Fields: `title` (≤120 chars), `url`, `snippet` (≤300 chars, HTML-decoded, en
 
 | Engine | Method | Notes |
 |--------|--------|-------|
-| DDG | CloakBrowser | Fast, no consent |
+| DDG | CloakBrowser | General web results |
 | Brave | CloakBrowser or Brave Search API | Good for technical queries. In `auto` mode, use the official API when `BRAVE_SEARCH_API_KEY` is present |
 | Bing | CloakBrowser | High coverage |
-| Google | CloakBrowser | Best quality, CAPTCHA-prone |
+| Google | CloakBrowser | Broad search coverage, CAPTCHA-prone |
 | Reddit | JSON API | Community discussions |
 | GitHub | JSON API | Code repositories |
+| Stack Overflow | JSON API | Debugging and developer Q&A |
+| Hacker News | JSON API | Technical discussions and launch/news context |
+| npm | JSON API | JavaScript package discovery |
 | Wikipedia | JSON API | Factual definitions |
 
 Enable Brave in merged search only if you explicitly want it:
@@ -91,9 +95,9 @@ GOD_SEARCH_BRAVE_MODE=auto
 
 ## Performance
 
-- First request: ~2s (API engines — reddit/github/wikipedia complete fast)
-- Second request: <10ms (cache hit — all active engines included, cross-engine boosted)
-- Cold start: +3–5s (browser launch on top of first request)
+- First request: JSON API engines can complete before browser-backed engines
+- Repeated requests: cache can reuse recent merged results
+- Cold start: includes browser launch when the daemon or browser is not already warm
 
 ## Scoring
 

@@ -1,4 +1,6 @@
 .claude/
+.agents/
+.github/
 .graphifyignore
 CLAUDE.md
 graphify-out/
